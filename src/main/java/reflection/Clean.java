@@ -1,84 +1,110 @@
 package reflection;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
+/**
+ * Класс для тестирования возможностей reflection
+ * @autor Айрат Загидуллин
+ * @version 1.0
+ */
 public class Clean {
 
-    public void cleanUp(Object object, Set<String> fieldToCleanup, Set<String> fieldToOutput) throws NoSuchFieldException, IllegalAccessException {
+    /**
+     * Изменение полей класса если Object, изменение ключей/значений если implements Map
+     * @param object - исследуемый объект
+     * @param fieldToCleanup - имена полей класса для установки дефолтных значений
+     * @param fieldToOutput - имена полей класса для вывода в консоль
+     */
+    public void cleanUp(Object object, Set<String> fieldToCleanup, Set<String> fieldToOutput) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
         Class testClass = object.getClass();
 
-        if(object instanceof java.util.Map) {
-            System.out.println(true);
+        if (object instanceof java.util.Map) {
+            cleanUpMapIml(testClass, object, fieldToCleanup, fieldToOutput);
         } else {
-            Field[] fields = testClass.getFields();
-
-            for(Field field: fields) {
-                for (String s : fieldToCleanup) {
-                    if(field.getName() == s) {
-                        switch (field.getType().toString()) {
-                            case "int": field.setInt(object, 0);
-                                break;
-                            case "boolean": field.setBoolean(object, false);
-                                break;
-                            case "char": field.setChar(object, Character.MIN_VALUE);
-                                break;
-                            case "byte": field.setByte(object, (byte) 0);
-                                break;
-                            case "float": field.setFloat(object, Float.NaN);
-                                break;
-                            case "double": field.setDouble(object, Double.NaN);
-                                break;
-                            case "long": field.setLong(object, 0L);
-                                break;
-                            case "short": field.setShort(object, (short) 0);
-                            default: field.set(object, null);
-                                break;
+            Field[] fields = testClass.getDeclaredFields();
+            if (fields.length == 0) {
+                throw new IllegalArgumentException("В коллекции нет данных!");
+            } else {
+                for (Field field : fields) {
+                    for (String s : fieldToCleanup) {
+                        if (field.getName().equals(s)) {
+                            field.setAccessible(true);
+                            switch (field.getType().toString()) {
+                                case "int":
+                                    field.setInt(object, 0);
+                                    break;
+                                case "boolean":
+                                    field.setBoolean(object, false);
+                                    break;
+                                case "char":
+                                    field.setChar(object, Character.MIN_VALUE);
+                                    break;
+                                case "byte":
+                                    field.setByte(object, (byte) 0);
+                                    break;
+                                case "float":
+                                    field.setFloat(object, Float.NaN);
+                                    break;
+                                case "double":
+                                    field.setDouble(object, Double.NaN);
+                                    break;
+                                case "long":
+                                    field.setLong(object, 0L);
+                                    break;
+                                case "short":
+                                    field.setShort(object, (short) 0);
+                                    break;
+                                default:
+                                    field.set(object, null);
+                                    break;
+                            }
+                        }
+                    }
+                    for (String s : fieldToOutput) {
+                        if (field.getName() == s) {
+                            field.setAccessible(true);
+                            String value = field.get(object).toString();
+//                        System.out.println("field - " + field.getName() + " " + value);
                         }
                     }
                 }
-                for (String s : fieldToOutput) {
-                    if(field.getName() == s) {
-                        String value = field.get(object).toString();
-                        System.out.println("field - " + field.getName() + " " + value);
-                        }
-                    }
-                }
+                System.out.print(fieldToOutput);
             }
         }
-
-    public void objectCleanUpOutput() {
-
     }
 
-    public void mapImplCleanUpOutput() {
+    private void cleanUpMapIml(Class mapClass, Object objectMap, Set fieldToCleanupMap, Set<String> fieldToOutputMap) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
+        Method methodKeySet = mapClass.getMethod("keySet", null);
+
+        fieldToCleanupMap = (Set) methodKeySet.invoke(objectMap, null);
+        if (fieldToCleanupMap.isEmpty()) {
+            throw new IllegalArgumentException("В коллекции нет данных!");
+        } else {
+            Method methodValues = mapClass.getMethod("values", null);
+            Collection collValues = (Collection) methodValues.invoke(objectMap, null);
+
+            fieldToOutputMap = new HashSet<String>();
+            for (Iterator iter = collValues.iterator(); iter.hasNext(); ) {
+                String valueOutput = iter.next().toString();
+                fieldToOutputMap.add(valueOutput);
+            }
+            System.out.print(fieldToOutputMap);
+
+            Object[] valueObject = fieldToCleanupMap.toArray();
+            Method methodRemove = mapClass.getMethod("remove", java.lang.Object.class);
+
+            for (int i = 0; i < valueObject.length; i++) {
+                methodRemove.invoke(objectMap, valueObject[i]);
+            }
+        }
     }
 
-    public static void main(String[] args) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException {
-
-        Clean clean = new Clean();
-        TestCar testCar = new TestCar("Lada", "2109", "sedan", "gasoline", 4, 86, (byte) 5);
-        HashMap hashMap = new HashMap();
-
-
-        Set<String> fieldToCleanUp = new HashSet<String>();
-        fieldToCleanUp.add("name");
-        fieldToCleanUp.add("door");
-        fieldToCleanUp.add("power");
-
-        Set<String> fieldToOutput = new HashSet<String>();
-        fieldToOutput.add("model");
-        fieldToOutput.add("kuzov");
-        fieldToOutput.add("fuel");
-        fieldToOutput.add("numberOfSpeed");
-
-        clean.cleanUp(hashMap, fieldToCleanUp, fieldToOutput);
-
-        clean.cleanUp(testCar, fieldToCleanUp, fieldToOutput);
+    public static void main(String[] args) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
     }
 

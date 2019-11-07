@@ -2,13 +2,13 @@ package reflection;
 
 public class TestCar {
 
-    public String name;
-    public String model;
-    public String kuzov;
-    public String fuel;
-    public int door;
-    public long power;
-    public byte numberOfSpeed;
+    private String name;
+    private String model;
+    private String kuzov;
+    private String fuel;
+    private int door;
+    private long power;
+    private byte numberOfSpeed;
 
     public TestCar(String name, String model, String kuzov, String fuel, int door, long power, byte numberOfSpeed) {
         this.name = name;
@@ -20,7 +20,31 @@ public class TestCar {
         this.numberOfSpeed = numberOfSpeed;
     }
 
-    public static void main(String[] args) {
+    public String getName() {
+        return name;
+    }
 
+    public String getModel() {
+        return model;
+    }
+
+    public String getKuzov() {
+        return kuzov;
+    }
+
+    public String getFuel() {
+        return fuel;
+    }
+
+    public int getDoor() {
+        return door;
+    }
+
+    public long getPower() {
+        return power;
+    }
+
+    public byte getNumberOfSpeed() {
+        return numberOfSpeed;
     }
 }
