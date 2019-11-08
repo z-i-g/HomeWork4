@@ -7,16 +7,18 @@ import java.util.*;
 
 /**
  * Класс для тестирования возможностей reflection
- * @autor Айрат Загидуллин
+ *
  * @version 1.0
+ * @autor Айрат Загидуллин
  */
 public class Clean {
 
     /**
      * Изменение полей класса если Object, изменение ключей/значений если implements Map
-     * @param object - исследуемый объект
+     *
+     * @param object         - исследуемый объект
      * @param fieldToCleanup - имена полей класса для установки дефолтных значений
-     * @param fieldToOutput - имена полей класса для вывода в консоль
+     * @param fieldToOutput  - имена полей класса для вывода в консоль
      */
     public void cleanUp(Object object, Set<String> fieldToCleanup, Set<String> fieldToOutput) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
@@ -77,18 +79,17 @@ public class Clean {
         }
     }
 
-    private void cleanUpMapIml(Class mapClass, Object objectMap, Set fieldToCleanupMap, Set<String> fieldToOutputMap) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    private void cleanUpMapIml(Class mapClass, Object objectMap, Set<String> fieldToCleanupMap, Set<String> fieldToOutputMap) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
 
-        Method methodKeySet = mapClass.getMethod("keySet", null);
+        Method methodSize = mapClass.getMethod("size", null);
+        Object objSize = methodSize.invoke(objectMap, null);
 
-        fieldToCleanupMap = (Set) methodKeySet.invoke(objectMap, null);
-        if (fieldToCleanupMap.isEmpty()) {
+        if ((objSize.toString()).equals("0")) {
             throw new IllegalArgumentException("В коллекции нет данных!");
         } else {
             Method methodValues = mapClass.getMethod("values", null);
             Collection collValues = (Collection) methodValues.invoke(objectMap, null);
 
-            fieldToOutputMap = new HashSet<String>();
             for (Iterator iter = collValues.iterator(); iter.hasNext(); ) {
                 String valueOutput = iter.next().toString();
                 fieldToOutputMap.add(valueOutput);
@@ -107,5 +108,6 @@ public class Clean {
     public static void main(String[] args) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
 
     }
+
 
 }
